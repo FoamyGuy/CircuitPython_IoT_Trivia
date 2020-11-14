@@ -1,9 +1,6 @@
 import gc
-import ipaddress
-import wifi
 import ssl
 import socketpool
-import terminalio
 import displayio
 import busio as io
 import adafruit_requests
@@ -17,8 +14,11 @@ import board
 import time
 from adafruit_bitmap_font import bitmap_font
 from adafruit_display_text import label
+import ipaddress
+import wifi
 from secrets import secrets
 
+QUESTION_URL = "https://opentdb.com/api.php?amount=1&type=multiple"
 
 def display_answers(answers, current_selected_answer):
     """Display answers function
@@ -60,7 +60,7 @@ def scroll():
     lines = output_label.text.split("\n")
     if _cur_scroll_index + LINES_VISIBLE > len(lines):
         _cur_scroll_index = 0
-    display_text("\n".join(wrap_nicely(question_data['results'][0]['question'], 25)[_cur_scroll_index:]))
+    display_text("\n".join(wrap_nicely(CUR_QUESTION_OBJ['results'][0]['question'], 25)[_cur_scroll_index:]))
 
 
 def display_text(text):
@@ -86,6 +86,31 @@ def display_text(text):
         pass
 
 
+def fetch_question():
+    suceed = False
+    while not suceed:
+        # Garbage collect before our GET request
+        gc.collect()
+        # Perform a GET on the DATA_SOURCE and instantiate into a response object
+        display_text('Fetching Question')
+        print('Fetching Question')
+        try:
+            # Create our response and DATA objects
+            response = requests.get(QUESTION_URL)
+            response_obj = response.json()
+            response.close()
+            suceed = True
+            return response_obj
+        except OSError as e:
+            print(e)
+            display_text("OS Error. Retrying")
+            time.sleep(2)
+
+        # Garbage collect after our GET request
+        gc.collect()
+
+print("after functions")
+CUR_QUESTION_OBJ = None
 # Config
 STATE_QUESTION = 0
 STATE_ANSWER = 1
@@ -99,24 +124,38 @@ score = 0
 
 # Instantiate i2c object
 i2c = busio.I2C(board.SCL, board.SDA)
-
+print("after i2c")
 # Instantiate OLED object
 displayio.release_displays()
 display_bus = displayio.I2CDisplay(i2c, device_address=0x3C)
+print("after display bus")
 font = bitmap_font.load_font('SourceSansPro-Regular.bdf')
 output_label = label.Label(font, color=0xFFFFFF, max_glyphs=30 * 4)
 output_label.line_spacing = 0.8
 output_label.anchor_point = (0, 0)
 output_label.anchored_position = (0, 0)
 display_ssd1306 = adafruit_displayio_ssd1306.SSD1306(display_bus, width=128, height=32, rotation=180)
+print("after display")
 display_ssd1306.show(output_label)
+print("after show")
+
+# Setup wifi and connection
+print(wifi.radio.connect(secrets['ssid'], secrets['password']))
+print('ip', wifi.radio.ipv4_address)
+display_text("ip: {}".format(wifi.radio.ipv4_address))
+ipv4 = ipaddress.ip_address('8.8.8.8')
+ping_result = wifi.radio.ping(ipv4)
+print('ping', ping_result)
+display_text("ping: {}".format(ping_result))
+pool = socketpool.SocketPool(wifi.radio)
+requests = adafruit_requests.Session(pool, ssl.create_default_context())
 
 # Read trivia.json
-f = open('trivia.json', 'r')
-question_str = f.read()
-f.close()
-question_data = json.loads(question_str)
-display_text('\n'.join(wrap_nicely(question_data['results'][0]['question'], 25)))
+#f = open('trivia.json', 'r')
+#question_str = f.read()
+#f.close()
+#question_data = json.loads(question_str)
+#display_text('\n'.join(wrap_nicely(CUR_QUESTION_OBJ['results'][0]['question'], 25)))
 
 # Pins
 c_pin = digitalio.DigitalInOut(board.IO33)
@@ -133,24 +172,28 @@ old_b_val = b_pin.value
 old_a_val = a_pin.value
 
 while True:
+    if CUR_QUESTION_OBJ is None:
+        CUR_QUESTION_OBJ = fetch_question()
+        display_text('\n'.join(wrap_nicely(CUR_QUESTION_OBJ['results'][0]['question'], 25)))
+
     cur_c_val = c_pin.value
     if not cur_c_val and old_c_val:
         print('pressed c')
         if CUR_STATE == STATE_QUESTION:
             CUR_STATE = STATE_ANSWER
-            all_answers = question_data['results'][0]['incorrect_answers']
-            all_answers.append(question_data['results'][0]['correct_answer'])
+            all_answers = CUR_QUESTION_OBJ['results'][0]['incorrect_answers']
+            all_answers.append(CUR_QUESTION_OBJ['results'][0]['correct_answer'])
             display_answers(all_answers, current_selected_answer)
         elif CUR_STATE == STATE_ANSWER:
             CUR_STATE = STATE_RESULT
-            if all_answers[current_selected_answer] == question_data['results'][0]['correct_answer']:
+            if all_answers[current_selected_answer] == CUR_QUESTION_OBJ['results'][0]['correct_answer']:
                 score += 1
-                display_text('Correct! YaY\nScore: {}'.format())
+                display_text('Correct! YaY\nScore: {}'.format(score))
             else:
                 display_text('Incorrect')
         elif CUR_STATE == STATE_RESULT:
             CUR_STATE = STATE_QUESTION
-            display_text('\n'.join(wrap_nicely(question_data['results'][0]['question'], 25)))
+            CUR_QUESTION_OBJ = None  # clear the question obj to fetch a new one
     old_c_val = cur_c_val
 
     cur_b_val = b_pin.value
