@@ -33,3 +33,24 @@ wrap_nicely.py
 
 ## STEP 1: Modify secrets.py
 Edit the `secrets.py` file with your credentials.
+
+## STEP 2: Power Device
+This is the FUN part where you get to fire up your new trivia device! 
+When you see the question press the C button on the OLED which takes you to answer mode then press the A button to scroll to your answer choice and then press the C button again to lock in your answer.
+
+## 24/7 Community Of Support
+If you have any questions regarding this app or implementing your own version of this app please visit us in the CircuitPython Discord channel [HERE](https://discord.com/invite/5FBsBHU) and visit the `help-with-circuitpython` room.
+
+## Run Tests in REPL
+```bash
+import unittest
+unittest.main('test_wrap_nicely')
+```
+
+## Contributing
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+Please make sure to update tests as appropriate.
+
+## License
+[Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0)
