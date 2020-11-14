@@ -87,6 +87,17 @@ def display_text(text):
 
 
 def fetch_question():
+    """Display fetch_question function
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    Dict
+        Response_obj dict
+    """
     suceed = False
     while not suceed:
         # Garbage collect before our GET request
@@ -108,6 +119,7 @@ def fetch_question():
 
         # Garbage collect after our GET request
         gc.collect()
+
 
 print("after functions")
 CUR_QUESTION_OBJ = None
