@@ -95,6 +95,7 @@ LINES_VISIBLE = 3
 _cur_scroll_index = 0
 current_selected_answer = 0
 all_answers = []
+score = 0
 
 # Instantiate i2c object
 i2c = busio.I2C(board.SCL, board.SDA)
@@ -144,6 +145,12 @@ while True:
             CUR_STATE = STATE_RESULT
             if all_answers[current_selected_answer] == question_data['results'][0]['correct_answer']:
                 display_text('Correct! YaY')
+                score += 1
+                time.sleep(2)
+                display_text('Score')
+                time.sleep(1)
+                display_text(score)
+                time.sleep(1)
             else:
                 display_text('Incorrect')
         elif CUR_STATE == STATE_RESULT:
