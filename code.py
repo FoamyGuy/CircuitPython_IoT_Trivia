@@ -144,13 +144,8 @@ while True:
         elif CUR_STATE == STATE_ANSWER:
             CUR_STATE = STATE_RESULT
             if all_answers[current_selected_answer] == question_data['results'][0]['correct_answer']:
-                display_text('Correct! YaY')
                 score += 1
-                time.sleep(2)
-                display_text('Score')
-                time.sleep(1)
-                display_text(score)
-                time.sleep(1)
+                display_text('Correct! YaY\nScore: {}'.format())
             else:
                 display_text('Incorrect')
         elif CUR_STATE == STATE_RESULT:
