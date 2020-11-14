@@ -172,45 +172,48 @@ old_b_val = b_pin.value
 old_a_val = a_pin.value
 
 while True:
-    if CUR_QUESTION_OBJ is None:
-        CUR_QUESTION_OBJ = fetch_question()
-        display_text('\n'.join(wrap_nicely(CUR_QUESTION_OBJ['results'][0]['question'], 25)))
+    try:
+        if CUR_QUESTION_OBJ is None:
+            CUR_QUESTION_OBJ = fetch_question()
+            display_text('\n'.join(wrap_nicely(CUR_QUESTION_OBJ['results'][0]['question'], 25)))
 
-    cur_c_val = c_pin.value
-    if not cur_c_val and old_c_val:
-        print('pressed c')
-        if CUR_STATE == STATE_QUESTION:
-            CUR_STATE = STATE_ANSWER
-            all_answers = CUR_QUESTION_OBJ['results'][0]['incorrect_answers']
-            all_answers.append(CUR_QUESTION_OBJ['results'][0]['correct_answer'])
-            display_answers(all_answers, current_selected_answer)
-        elif CUR_STATE == STATE_ANSWER:
-            CUR_STATE = STATE_RESULT
-            if all_answers[current_selected_answer] == CUR_QUESTION_OBJ['results'][0]['correct_answer']:
-                score += 1
-                display_text('Correct! YaY\nScore: {}'.format(score))
-            else:
-                display_text('Incorrect')
-        elif CUR_STATE == STATE_RESULT:
-            CUR_STATE = STATE_QUESTION
-            CUR_QUESTION_OBJ = None  # clear the question obj to fetch a new one
-    old_c_val = cur_c_val
+        cur_c_val = c_pin.value
+        if not cur_c_val and old_c_val:
+            print('pressed c')
+            if CUR_STATE == STATE_QUESTION:
+                CUR_STATE = STATE_ANSWER
+                all_answers = CUR_QUESTION_OBJ['results'][0]['incorrect_answers']
+                all_answers.append(CUR_QUESTION_OBJ['results'][0]['correct_answer'])
+                display_answers(all_answers, current_selected_answer)
+            elif CUR_STATE == STATE_ANSWER:
+                CUR_STATE = STATE_RESULT
+                if all_answers[current_selected_answer] == CUR_QUESTION_OBJ['results'][0]['correct_answer']:
+                    score += 1
+                    display_text('Correct! YaY\nScore: {}'.format(score))
+                else:
+                    display_text('Incorrect')
+            elif CUR_STATE == STATE_RESULT:
+                CUR_STATE = STATE_QUESTION
+                CUR_QUESTION_OBJ = None  # clear the question obj to fetch a new one
+        old_c_val = cur_c_val
 
-    cur_b_val = b_pin.value
-    if not cur_b_val and old_b_val:
-        print('pressed b')
-    old_b_val = cur_b_val
+        cur_b_val = b_pin.value
+        if not cur_b_val and old_b_val:
+            print('pressed b')
+        old_b_val = cur_b_val
 
-    cur_a_val = a_pin.value
-    if not cur_a_val and old_a_val:
-        print('pressed a')
-        if CUR_STATE == STATE_QUESTION:
-            scroll()
-        if CUR_STATE == STATE_ANSWER:
-            current_selected_answer += 1
-            if current_selected_answer > 3:
-                current_selected_answer = 0
-            display_answers(all_answers, current_selected_answer)
-    old_a_val = cur_a_val
+        cur_a_val = a_pin.value
+        if not cur_a_val and old_a_val:
+            print('pressed a')
+            if CUR_STATE == STATE_QUESTION:
+                scroll()
+            if CUR_STATE == STATE_ANSWER:
+                current_selected_answer += 1
+                if current_selected_answer > 3:
+                    current_selected_answer = 0
+                display_answers(all_answers, current_selected_answer)
+        old_a_val = cur_a_val
 
-    time.sleep(0.05)
+        time.sleep(0.05)
+    except RuntimeError:
+        pass
