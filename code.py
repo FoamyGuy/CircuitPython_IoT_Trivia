@@ -121,9 +121,30 @@ def fetch_question():
         gc.collect()
 
 
+def call_wifi():
+    """Wifi connect function
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    None
+    """
+    # Setup wifi and connection
+    print(wifi.radio.connect(secrets['ssid'], secrets['password']))
+    print('ip', wifi.radio.ipv4_address)
+    display_text("ip: {}".format(wifi.radio.ipv4_address))
+    ipv4 = ipaddress.ip_address('8.8.8.8')
+    ping_result = wifi.radio.ping(ipv4)
+    print('ping', ping_result)
+    display_text("ping: {}".format(ping_result))
+
+
+# Config
 print("after functions")
 CUR_QUESTION_OBJ = None
-# Config
 STATE_QUESTION = 0
 STATE_ANSWER = 1
 STATE_RESULT = 2
@@ -151,16 +172,12 @@ print("after display")
 display_ssd1306.show(output_label)
 print("after show")
 
-# Setup wifi and connection
-print(wifi.radio.connect(secrets['ssid'], secrets['password']))
-print('ip', wifi.radio.ipv4_address)
-display_text("ip: {}".format(wifi.radio.ipv4_address))
-ipv4 = ipaddress.ip_address('8.8.8.8')
-ping_result = wifi.radio.ping(ipv4)
-print('ping', ping_result)
-display_text("ping: {}".format(ping_result))
+# Init request object
 pool = socketpool.SocketPool(wifi.radio)
 requests = adafruit_requests.Session(pool, ssl.create_default_context())
+
+# Attempt to connect on boot
+call_wifi()
 
 # Read trivia.json
 #f = open('trivia.json', 'r')
@@ -227,5 +244,6 @@ while True:
         old_a_val = cur_a_val
 
         time.sleep(0.05)
-    except RuntimeError:
-        pass
+    except Exception as e:
+        print(e)
+        call_wifi()
