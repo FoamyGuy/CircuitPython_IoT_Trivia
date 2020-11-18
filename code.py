@@ -20,6 +20,7 @@ from secrets import secrets
 
 QUESTION_URL = "https://opentdb.com/api.php?amount=1&type=multiple"
 
+
 def display_answers(answers, current_selected_answer):
     """Display answers function
 
