@@ -1,168 +1,36 @@
 import gc
-import ssl
-import socketpool
 import displayio
-import busio as io
-import adafruit_requests
-import json
 import digitalio
-from wrap_nicely import wrap_nicely
-import adafruit_displayio_ssd1306
-import displayio
-import busio
 import board
 import time
+from call_wifi import call_wifi
+from fetch_question import fetch_question
+from display_text import display_text
+from display_answers import display_answers
+from wrap_nicely import wrap_nicely
 from adafruit_bitmap_font import bitmap_font
 from adafruit_display_text import label
-import ipaddress
-import wifi
-from secrets import secrets
-
-QUESTION_URL = "https://opentdb.com/api.php?amount=1&type=multiple"
-
-def display_answers(answers, current_selected_answer):
-    """Display answers function
-
-    Parameters
-    ----------
-    answers : list
-        List of answers
-    current_selected_answer: int
-        Int of a specific answer
-
-    Returns
-    -------
-    None
-    """
-    lines = answers.copy()
-    lines[current_selected_answer] = '>{}'.format(lines[current_selected_answer])
-    if current_selected_answer <= 1:
-        display_text('\n'.join(lines))
-    else:
-        display_text('\n'.join(lines[1:]))
 
 
-def scroll():
-    """Scroll function
-
-    Parameters
-    ----------
-    None
-
-    Returns
-    -------
-    None
-    """
-    global _cur_scroll_index
-    print(_cur_scroll_index)
-    _cur_scroll_index += 1
-    print(_cur_scroll_index)
-    lines = output_label.text.split("\n")
-    if _cur_scroll_index + LINES_VISIBLE > len(lines):
-        _cur_scroll_index = 0
-    display_text("\n".join(wrap_nicely(CUR_QUESTION_OBJ['results'][0]['question'], 25)[_cur_scroll_index:]))
-
-
-def display_text(text):
-    """Display text function
-
-    Parameters
-    ----------
-    text : str
-        Text to print
-    line: int
-        Line to print text on
-
-    Returns
-    -------
-    None
-    """
-    text = str(text)
-    output_label.text = ' '
-    output_label.text = text
-    before = time.monotonic()
-    while time.monotonic() < before + 0.2:
-        # Waiting for screen to finish drawing
-        pass
-
-
-def fetch_question():
-    """Display fetch_question function
-
-    Parameters
-    ----------
-    None
-
-    Returns
-    -------
-    Dict
-        Response_obj dict
-    """
-    suceed = False
-    while not suceed:
-        # Garbage collect before our GET request
-        gc.collect()
-        # Perform a GET on the DATA_SOURCE and instantiate into a response object
-        display_text('Fetching Question')
-        print('Fetching Question')
-        try:
-            # Create our response and DATA objects
-            response = requests.get(QUESTION_URL)
-            response_obj = response.json()
-            response.close()
-            suceed = True
-            return response_obj
-        except OSError as e:
-            print(e)
-            display_text("OS Error. Retrying")
-            time.sleep(2)
-
-        # Garbage collect after our GET request
-        gc.collect()
-
-
-print("after functions")
-CUR_QUESTION_OBJ = None
 # Config
+CUR_QUESTION_OBJ = None
 STATE_QUESTION = 0
 STATE_ANSWER = 1
 STATE_RESULT = 2
 CUR_STATE = STATE_QUESTION
-LINES_VISIBLE = 3
-_cur_scroll_index = 0
 current_selected_answer = 0
 all_answers = []
 score = 0
-
-# Instantiate i2c object
-i2c = busio.I2C(board.SCL, board.SDA)
-print("after i2c")
-# Instantiate OLED object
-displayio.release_displays()
-display_bus = displayio.I2CDisplay(i2c, device_address=0x3C)
-print("after display bus")
 font = bitmap_font.load_font('SourceSansPro-Regular.bdf')
+LINES_VISIBLE = 3
+_cur_scroll_index = 0
 output_label = label.Label(font, color=0xFFFFFF, max_glyphs=30 * 4)
-output_label.line_spacing = 0.8
-output_label.anchor_point = (0, 0)
-output_label.anchored_position = (0, 0)
-display_ssd1306 = adafruit_displayio_ssd1306.SSD1306(display_bus, width=128, height=32, rotation=180)
-print("after display")
-display_ssd1306.show(output_label)
-print("after show")
 
-# Setup wifi and connection
-print(wifi.radio.connect(secrets['ssid'], secrets['password']))
-print('ip', wifi.radio.ipv4_address)
-display_text("ip: {}".format(wifi.radio.ipv4_address))
-ipv4 = ipaddress.ip_address('8.8.8.8')
-ping_result = wifi.radio.ping(ipv4)
-print('ping', ping_result)
-display_text("ping: {}".format(ping_result))
-pool = socketpool.SocketPool(wifi.radio)
-requests = adafruit_requests.Session(pool, ssl.create_default_context())
+# Attempt to connect on boot
+call_wifi()
 
-# Read trivia.json
+# Read trivia.json - if you wanted to try do build a db locally 
+# here is an example for you
 #f = open('trivia.json', 'r')
 #question_str = f.read()
 #f.close()
@@ -218,7 +86,13 @@ while True:
         if not cur_a_val and old_a_val:
             print('pressed a')
             if CUR_STATE == STATE_QUESTION:
-                scroll()
+                print(_cur_scroll_index)
+                _cur_scroll_index += 1
+                print(_cur_scroll_index)
+                lines = output_label.text.split("\n")
+                if _cur_scroll_index + LINES_VISIBLE > len(lines):
+                    _cur_scroll_index = 0
+                display_text("\n".join(wrap_nicely(CUR_QUESTION_OBJ['results'][0]['question'], 25)[_cur_scroll_index:]))
             if CUR_STATE == STATE_ANSWER:
                 current_selected_answer += 1
                 if current_selected_answer > 3:
@@ -227,5 +101,6 @@ while True:
         old_a_val = cur_a_val
 
         time.sleep(0.05)
-    except RuntimeError:
-        pass
+    except Exception as e:
+        print(e)
+        call_wifi()
