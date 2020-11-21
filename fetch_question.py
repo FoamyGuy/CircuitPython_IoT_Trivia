@@ -6,7 +6,7 @@ import time
 import socketpool
 import wifi
 from call_wifi import call_wifi
-from display_text import display_text
+from display_helpers import show_text
 
 
 # Init request object
@@ -17,7 +17,7 @@ requests = adafruit_requests.Session(pool, ssl.create_default_context())
 QUESTION_URL = 'https://opentdb.com/api.php?amount=1&type=multiple'
 
 
-def fetch_question():
+def fetch_question(label):
     """Display fetch_question function
 
     Parameters
@@ -34,7 +34,7 @@ def fetch_question():
         # Garbage collect before our GET request
         gc.collect()
         # Perform a GET on the DATA_SOURCE and instantiate into a response object
-        display_text('Fetching Question')
+        show_text('Fetching Question', label)
         print('Fetching Question')
         try:
             # Create our response and DATA objects
@@ -45,7 +45,7 @@ def fetch_question():
             return response_obj
         except OSError as e:
             print(e)
-            display_text('OS Error. Retrying')
+            show_text('OS Error. Retrying', label)
             time.sleep(2)
 
         # Garbage collect after our GET request
