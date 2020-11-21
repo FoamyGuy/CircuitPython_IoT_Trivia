@@ -55,3 +55,6 @@ def display_answers(answers, current_selected_answer, label):
         show_text('\n'.join(lines), label)
     else:
         show_text('\n'.join(lines[1:]), label)
+
+def replace_escape_codes(input_str):
+    return input_str.replace("&quot;", '"')

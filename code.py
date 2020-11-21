@@ -8,7 +8,7 @@ from fetch_question import fetch_question
 from wrap_nicely import wrap_nicely
 from adafruit_bitmap_font import bitmap_font
 from adafruit_display_text import bitmap_label
-from display_helpers import OLEDFeatherWing, show_text, display_answers
+from display_helpers import OLEDFeatherWing, show_text, display_answers, replace_escape_codes
 
 # Config
 CUR_QUESTION_OBJ = None
@@ -23,6 +23,7 @@ font = bitmap_font.load_font('SourceSansPro-Regular.bdf')
 LINES_VISIBLE = 3
 _cur_scroll_index = 0
 output_label = bitmap_label.Label(font, color=0xFFFFFF, max_glyphs=30 * 4)
+output_label.line_spacing = 0.8
 output_label.anchor_point = (0,0)
 output_label.anchored_position = (0,0)
 oled_featherwing = OLEDFeatherWing()
@@ -59,7 +60,8 @@ while True:
     try:
         if CUR_QUESTION_OBJ is None:
             CUR_QUESTION_OBJ = fetch_question(output_label)
-            show_text('\n'.join(wrap_nicely(CUR_QUESTION_OBJ['results'][0]['question'], 25)), output_label)
+            _question_text = replace_escape_codes(CUR_QUESTION_OBJ['results'][0]['question'])
+            show_text('\n'.join(wrap_nicely(_question_text, 25)), output_label)
 
         cur_c_val = c_pin.value
         if not cur_c_val and old_c_val:
@@ -90,10 +92,11 @@ while True:
         if not cur_a_val and old_a_val:
             print('pressed a')
             if CUR_STATE == STATE_QUESTION:
-                print(_cur_scroll_index)
+                #print(_cur_scroll_index)
                 _cur_scroll_index += 1
-                print(_cur_scroll_index)
+                #print(_cur_scroll_index)
                 lines = output_label.text.split("\n")
+                #print("there are {} lines".format(len(lines)))
                 if _cur_scroll_index + LINES_VISIBLE > len(lines):
                     _cur_scroll_index = 0
                 show_text("\n".join(wrap_nicely(CUR_QUESTION_OBJ['results'][0]['question'], 25)[_cur_scroll_index:]), output_label)
