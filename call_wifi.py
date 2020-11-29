@@ -9,7 +9,8 @@ def call_wifi(label):
 
     Parameters
     ----------
-    None
+    label : str
+        Output label 
 
     Returns
     -------

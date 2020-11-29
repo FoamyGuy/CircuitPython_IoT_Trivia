@@ -32,7 +32,7 @@ oled_featherwing = OLEDFeatherWing()
 oled_featherwing.display.show(output_label)
 
 # Attempt to connect on boot
-print("inital wifi")
+print('inital wifi')
 call_wifi(output_label)
 
 # Read trivia.json - if you wanted to try do build a db locally
@@ -58,19 +58,19 @@ old_b_val = b_pin.value
 old_a_val = a_pin.value
 
 _question_text = None
-print("going to loop")
+print('going to loop')
 while True:
     try:
         if CUR_QUESTION_OBJ is None:
             CUR_QUESTION_OBJ = fetch_question(output_label)
-            print(CUR_QUESTION_OBJ)
+            # print(CUR_QUESTION_OBJ)
             _question_text = replace_escape_codes(CUR_QUESTION_OBJ['results'][0]['question'])
 
             show_text('\n'.join(wrap_nicely(_question_text, 25)), output_label)
 
         cur_c_val = c_pin.value
         if not cur_c_val and old_c_val:
-            print('pressed c')
+            # print('pressed c')
             if CUR_STATE == STATE_QUESTION:
                 CUR_STATE = STATE_ANSWER
                 all_answers = CUR_QUESTION_OBJ['results'][0]['incorrect_answers']
@@ -85,25 +85,25 @@ while True:
                     show_text('Incorrect', output_label)
             elif CUR_STATE == STATE_RESULT:
                 CUR_STATE = STATE_QUESTION
-                CUR_QUESTION_OBJ = None  # clear the question obj to fetch a new one
-                current_selected_answer = 0  # clear selected answer index
-                _cur_scroll_index = 0  # clear question scroll index
+                CUR_QUESTION_OBJ = None  # Clear the question obj to fetch a new one
+                current_selected_answer = 0  # Clear selected answer index
+                _cur_scroll_index = 0  # Clear question scroll index
         old_c_val = cur_c_val
 
         cur_b_val = b_pin.value
         if not cur_b_val and old_b_val:
-            print('pressed b')
+            # print('pressed b')
         old_b_val = cur_b_val
 
         cur_a_val = a_pin.value
         if not cur_a_val and old_a_val:
-            print('pressed a')
+            # print('pressed a')
             if CUR_STATE == STATE_QUESTION:
                 # print(_cur_scroll_index)
                 _cur_scroll_index += 1
                 # print(_cur_scroll_index)
-                lines = output_label.text.split("\n")
-                print("there are {} lines. cur index {}".format(len(lines), _cur_scroll_index))
+                lines = output_label.text.split('\n')
+                # print('there are {} lines. cur index {}'.format(len(lines), _cur_scroll_index))
                 if _cur_scroll_index + LINES_VISIBLE > len(lines):
                     _cur_scroll_index = 0
                 show_text("\n".join(wrap_nicely(_question_text, 25)[_cur_scroll_index:]), output_label)
@@ -117,6 +117,6 @@ while True:
         time.sleep(0.05)
     except RuntimeError as e:
         print(e)
-        print("wait retry")
+        print('wait retry')
         time.sleep(5)
         call_wifi(output_label)

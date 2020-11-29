@@ -45,7 +45,7 @@ def fetch_question(label):
             return response_obj
         except OSError as e:
             print(e)
-            show_text('OS Error. Retrying', label)
+            show_text('OS Error - Retrying', label)
             time.sleep(2)
 
         # Garbage collect after our GET request
