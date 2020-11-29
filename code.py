@@ -1,4 +1,6 @@
 import gc
+import random
+
 import displayio
 import digitalio
 import board
@@ -24,8 +26,8 @@ LINES_VISIBLE = 3
 _cur_scroll_index = 0
 output_label = bitmap_label.Label(font, color=0xFFFFFF, max_glyphs=30 * 4)
 output_label.line_spacing = 0.8
-output_label.anchor_point = (0,0)
-output_label.anchored_position = (0,0)
+output_label.anchor_point = (0, 0)
+output_label.anchored_position = (0, 0)
 oled_featherwing = OLEDFeatherWing()
 oled_featherwing.display.show(output_label)
 
@@ -35,11 +37,11 @@ call_wifi(output_label)
 
 # Read trivia.json - if you wanted to try do build a db locally
 # here is an example for you
-#f = open('trivia.json', 'r')
-#question_str = f.read()
-#f.close()
-#question_data = json.loads(question_str)
-#display_text('\n'.join(wrap_nicely(CUR_QUESTION_OBJ['results'][0]['question'], 25)))
+# f = open('trivia.json', 'r')
+# question_str = f.read()
+# f.close()
+# question_data = json.loads(question_str)
+# display_text('\n'.join(wrap_nicely(CUR_QUESTION_OBJ['results'][0]['question'], 25)))
 
 # Pins
 c_pin = digitalio.DigitalInOut(board.IO33)
@@ -55,12 +57,15 @@ old_c_val = c_pin.value
 old_b_val = b_pin.value
 old_a_val = a_pin.value
 
+_question_text = None
 print("going to loop")
 while True:
     try:
         if CUR_QUESTION_OBJ is None:
             CUR_QUESTION_OBJ = fetch_question(output_label)
+            print(CUR_QUESTION_OBJ)
             _question_text = replace_escape_codes(CUR_QUESTION_OBJ['results'][0]['question'])
+
             show_text('\n'.join(wrap_nicely(_question_text, 25)), output_label)
 
         cur_c_val = c_pin.value
@@ -69,7 +74,7 @@ while True:
             if CUR_STATE == STATE_QUESTION:
                 CUR_STATE = STATE_ANSWER
                 all_answers = CUR_QUESTION_OBJ['results'][0]['incorrect_answers']
-                all_answers.append(CUR_QUESTION_OBJ['results'][0]['correct_answer'])
+                all_answers.insert(random.randint(0, 3), CUR_QUESTION_OBJ['results'][0]['correct_answer'])
                 display_answers(all_answers, current_selected_answer, output_label)
             elif CUR_STATE == STATE_ANSWER:
                 CUR_STATE = STATE_RESULT
@@ -81,6 +86,8 @@ while True:
             elif CUR_STATE == STATE_RESULT:
                 CUR_STATE = STATE_QUESTION
                 CUR_QUESTION_OBJ = None  # clear the question obj to fetch a new one
+                current_selected_answer = 0  # clear selected answer index
+                _cur_scroll_index = 0  # clear question scroll index
         old_c_val = cur_c_val
 
         cur_b_val = b_pin.value
@@ -92,14 +99,14 @@ while True:
         if not cur_a_val and old_a_val:
             print('pressed a')
             if CUR_STATE == STATE_QUESTION:
-                #print(_cur_scroll_index)
+                # print(_cur_scroll_index)
                 _cur_scroll_index += 1
-                #print(_cur_scroll_index)
+                # print(_cur_scroll_index)
                 lines = output_label.text.split("\n")
-                #print("there are {} lines".format(len(lines)))
+                print("there are {} lines. cur index {}".format(len(lines), _cur_scroll_index))
                 if _cur_scroll_index + LINES_VISIBLE > len(lines):
                     _cur_scroll_index = 0
-                show_text("\n".join(wrap_nicely(CUR_QUESTION_OBJ['results'][0]['question'], 25)[_cur_scroll_index:]), output_label)
+                show_text("\n".join(wrap_nicely(_question_text, 25)[_cur_scroll_index:]), output_label)
             if CUR_STATE == STATE_ANSWER:
                 current_selected_answer += 1
                 if current_selected_answer > 3:

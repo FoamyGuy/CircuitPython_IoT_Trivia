@@ -6,10 +6,10 @@ import adafruit_displayio_ssd1306
 
 class OLEDFeatherWing:
     def __init__(self):
+        displayio.release_displays()
         i2c = busio.I2C(board.SCL, board.SDA)
         print("after i2c")
         # Instantiate OLED object
-        displayio.release_displays()
         self._display_bus = displayio.I2CDisplay(i2c, device_address=0x3C)
         print("after display bus")
         self.display = adafruit_displayio_ssd1306.SSD1306(self._display_bus, width=128, height=32, rotation=180)
@@ -52,9 +52,9 @@ def display_answers(answers, current_selected_answer, label):
     lines = answers.copy()
     lines[current_selected_answer] = '>{}'.format(lines[current_selected_answer])
     if current_selected_answer <= 1:
-        show_text('\n'.join(lines), label)
+        show_text(replace_escape_codes('\n'.join(lines)), label)
     else:
-        show_text('\n'.join(lines[1:]), label)
+        show_text(replace_escape_codes('\n'.join(lines[1:])), label)
 
 def replace_escape_codes(input_str):
-    return input_str.replace("&quot;", '"').replace("&#039;", "'")
+    return input_str.replace("&quot;", '"').replace("&#039;", "'").replace("&amp;", "&")
