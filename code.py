@@ -91,7 +91,7 @@ while True:
         old_c_val = cur_c_val
 
         cur_b_val = b_pin.value
-        if not cur_b_val and old_b_val:
+        # if not cur_b_val and old_b_val:
             # print('pressed b')
         old_b_val = cur_b_val
 
