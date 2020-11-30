@@ -22,11 +22,12 @@ def fetch_question(label):
 
     Parameters
     ----------
-    None
+    label : str
+        Output label
 
     Returns
     -------
-    Dict
+    dict
         Response_obj dict
     """
     succeed = False
