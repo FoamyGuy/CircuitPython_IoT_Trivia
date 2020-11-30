@@ -29,6 +29,12 @@ trivia.json
 test_wrap_nicely.py [ORIGINAL SOURCE: https://github.com/adafruit/Adafruit_CircuitPython_PyPortal/blob/master/adafruit_pyportal.py]
 unittest.py [SOURCE: https://github.com/micropython/micropython-lib/blob/master/unittest/unittest.py]
 wrap_nicely.py
+call_wifi.py
+fetch_question.py
+display_helpers.py 
+test_call_wifi.py
+test_fetch_question.py
+test_display_helpers.py 
 ```
 
 ## STEP 1: Modify secrets.py
