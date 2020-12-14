@@ -12,7 +12,6 @@ import board
 import time
 from call_wifi import call_wifi
 from fetch_question import fetch_question
-from wrap_nicely import wrap_nicely
 from adafruit_bitmap_font import bitmap_font
 from adafruit_display_text import bitmap_label
 from display_helpers import OLEDFeatherWing, show_text, display_answers, replace_escape_codes

@@ -7,9 +7,9 @@ import board
 import time
 from call_wifi import call_wifi
 from fetch_question import fetch_question
-from wrap_nicely import wrap_nicely
+
 from adafruit_bitmap_font import bitmap_font
-from adafruit_display_text import bitmap_label
+from adafruit_display_text import bitmap_label, wrap_text_to_lines
 from display_helpers import OLEDFeatherWing, show_text, display_answers, replace_escape_codes
 
 # Config
@@ -66,7 +66,7 @@ while True:
             # print(CUR_QUESTION_OBJ)
             _question_text = replace_escape_codes(CUR_QUESTION_OBJ['results'][0]['question'])
 
-            show_text('\n'.join(wrap_nicely(_question_text, 25)), output_label)
+            show_text('\n'.join(wrap_text_to_lines(_question_text, 25)), output_label)
 
         cur_c_val = c_pin.value
         if not cur_c_val and old_c_val:
@@ -106,7 +106,7 @@ while True:
                 # print('there are {} lines. cur index {}'.format(len(lines), _cur_scroll_index))
                 if _cur_scroll_index + LINES_VISIBLE > len(lines):
                     _cur_scroll_index = 0
-                show_text("\n".join(wrap_nicely(_question_text, 25)[_cur_scroll_index:]), output_label)
+                show_text("\n".join(wrap_text_to_lines(_question_text, 25)[_cur_scroll_index:]), output_label)
             if CUR_STATE == STATE_ANSWER:
                 current_selected_answer += 1
                 if current_selected_answer > 3:
